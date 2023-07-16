@@ -117,31 +117,38 @@ class Product
     {
         // запрос для обновления записи (товара)
         $query = "UPDATE
-            " . $this->table_name . "
-        SET
-            name = :name,
-            price = :price,
-            description = :description,
-            category_id = :category_id
-        WHERE
-            id = :id";
+        " . $this->table_name . "
+    SET";
+
+        $params = array();
+        if (!empty($this->name)) {
+            $query .= " name = :name,";
+            $params[':name'] = $this->name;
+        }
+        if (!empty($this->price)) {
+            $query .= " price = :price,";
+            $params[':price'] = $this->price;
+        }
+        if (!empty($this->description)) {
+            $query .= " description = :description,";
+            $params[':description'] = $this->description;
+        }
+        if (!empty($this->category_id)) {
+            $query .= " category_id = :category_id,";
+            $params[':category_id'] = $this->category_id;
+        }
+
+        $query = rtrim($query, ',');
+        $query .= " WHERE id = :id";
 
         // подготовка запроса
         $stmt = $this->conn->prepare($query);
 
-        // очистка
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->category_id = htmlspecialchars(strip_tags($this->category_id));
-        $this->id = htmlspecialchars(strip_tags($this->id));
+        $params[':id'] = $this->id;
 
-        // привязываем значения
-        $stmt->bindParam(":name", $this->name);
-        $stmt->bindParam(":price", $this->price);
-        $stmt->bindParam(":description", $this->description);
-        $stmt->bindParam(":category_id", $this->category_id);
-        $stmt->bindParam(":id", $this->id);
+        foreach ($params as $key => &$value) {
+            $stmt->bindParam($key, $value);
+        }
 
         // выполняем запрос
         if ($stmt->execute()) {

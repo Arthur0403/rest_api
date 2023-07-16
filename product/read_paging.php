@@ -6,7 +6,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // подключение файлов
 include_once "../config/core.php";
-include_once "../shared/utilities.php";
+include_once "../shared/utilites.php";
 include_once "../config/database.php";
 include_once "../objects/product.php";
 

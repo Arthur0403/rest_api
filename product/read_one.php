@@ -2,49 +2,55 @@
 
 // необходимые HTTP-заголовки
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: access");
-header("Access-Control-Allow-Methods: GET");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
-
-// подключение файла для соединения с базой и файл с объектом
-include_once "../config/database.php";
-include_once "../objects/product.php";
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 // получаем соединение с базой данных
+include_once "../config/database.php";
+
+// создание объекта товара
+include_once "../objects/product.php";
 $database = new Database();
 $db = $database->getConnection();
-
-// подготовка объекта
 $product = new Product($db);
 
-// установим свойство ID записи для чтения
-$product->id = isset($_GET["id"]) ? $_GET["id"] : die();
+// получаем отправленные данные
+$name = isset($_GET['name']) ? $_GET['name'] : '';
+$price = isset($_GET['price']) ? $_GET['price'] : '';
+$description = isset($_GET['description']) ? $_GET['description'] : '';
+$category_id = isset($_GET['category_id']) ? $_GET['category_id'] : '';
 
-// получим детали товара
-$product->readOne();
+// убеждаемся, что данные не пусты
+if (!empty($name) && !empty($price) && !empty($description) && !empty($category_id)) {
+    // устанавливаем значения свойств товара
+    $product->name = $name;
+    $product->price = $price;
+    $product->description = $description;
+    $product->category_id = $category_id;
+    $product->created = date("Y-m-d H:i:s");
 
-if ($product->name != null) {
+    // создание товара
+    if ($product->create()) {
+        // установим код ответа - 201 создано
+        http_response_code(201);
 
-    // создание массива
-    $product_arr = array(
-        "id" =>  $product->id,
-        "name" => $product->name,
-        "description" => $product->description,
-        "price" => $product->price,
-        "category_id" => $product->category_id,
-        "category_name" => $product->category_name
-    );
+        // сообщим пользователю
+        echo json_encode(array("message" => "Товар был создан."), JSON_UNESCAPED_UNICODE);
+    } else {
+        // установим код ответа - 503 сервис недоступен
+        http_response_code(503);
 
-    // код ответа - 200 OK
-    http_response_code(200);
-
-    // вывод в формате json
-    echo json_encode($product_arr);
+        // сообщим пользователю
+        echo json_encode(array("message" => "Невозможно создать товар."), JSON_UNESCAPED_UNICODE);
+    }
 } else {
-    // код ответа - 404 Не найдено
-    http_response_code(404);
+    // установим код ответа - 400 неверный запрос
+    http_response_code(400);
 
-    // сообщим пользователю, что такой товар не существует
-    echo json_encode(array("message" => "Товар не существует"), JSON_UNESCAPED_UNICODE);
+    // сообщим пользователю
+    echo json_encode(array("message" => "Невозможно создать товар. Данные неполные."), JSON_UNESCAPED_UNICODE);
 }
+
+?>
