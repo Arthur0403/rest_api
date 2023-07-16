@@ -16,6 +16,36 @@ class Category
     {
         $this->conn = $db;
     }
+        // метод для создания категории
+        function create()
+        {
+            // запрос для вставки (создания) записей
+            $query = "INSERT INTO
+                " . $this->table_name . "
+            SET
+            id=:id, name=:name,  description=:description, created=:created";
+    
+            // подготовка запроса
+            $stmt = $this->conn->prepare($query);
+    
+            // очистка
+            $this->id = htmlspecialchars(strip_tags($this->id));
+            $this->name = htmlspecialchars(strip_tags($this->name));
+            $this->description = htmlspecialchars(strip_tags($this->description));
+            $this->created = htmlspecialchars(strip_tags($this->created));
+    
+            // привязка значений
+            $stmt->bindParam(":id", $this->id);
+            $stmt->bindParam(":name", $this->name);
+            $stmt->bindParam(":description", $this->description);
+            $stmt->bindParam(":created", $this->created);
+    
+            // выполняем запрос
+            if ($stmt->execute()) {
+                return true;
+            }
+            return false;
+        }
 
     // метод для получения всех категорий товаров
     public function readAll()
