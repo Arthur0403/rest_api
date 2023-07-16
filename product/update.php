@@ -18,31 +18,36 @@ $db = $database->getConnection();
 // подготовка объекта
 $product = new Product($db);
 
-// получаем id товара для редактирования
-$data = json_decode(file_get_contents("php://input"));
+// получаем id товара для редактирования из URL-параметров
+$product->id = isset($_GET['id']) ? $_GET['id'] : die();
 
-// установим id свойства товара для редактирования
-$product->id = $data->id;
-
-// установим значения свойств товара
-$product->name = $data->name;
-$product->price = $data->price;
-$product->description = $data->description;
-$product->category_id = $data->category_id;
+// получаем данные из URL-параметров
+if (isset($_GET['name'])) {
+    $product->name = $_GET['name'];
+}
+if (isset($_GET['price'])) {
+    $product->price = $_GET['price'];
+}
+if (isset($_GET['description'])) {
+    $product->description = $_GET['description'];
+}
+if (isset($_GET['category_id'])) {
+    $product->category_id = $_GET['category_id'];
+}
 
 // обновление товара
 if ($product->update()) {
-    // установим код ответа - 200 ok
+    // установим код ответа - 200 OK
     http_response_code(200);
 
     // сообщим пользователю
-    echo json_encode(array("message" => "Товар был обновлён"), JSON_UNESCAPED_UNICODE);
-}
-// если не удается обновить товар, сообщим пользователю
-else {
-    // код ответа - 503 Сервис не доступен
+    echo json_encode(array("message" => "Товар был обновлен"), JSON_UNESCAPED_UNICODE);
+} else {
+    // установим код ответа - 503 Service Unavailable
     http_response_code(503);
 
-    // сообщение пользователю
+    // сообщим пользователю
     echo json_encode(array("message" => "Невозможно обновить товар"), JSON_UNESCAPED_UNICODE);
 }
+
+?>

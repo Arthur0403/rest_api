@@ -19,10 +19,7 @@ $db = $database->getConnection();
 $product = new Product($db);
 
 // получаем id товара
-$data = json_decode(file_get_contents("php://input"));
-
-// установим id товара для удаления
-$product->id = $data->id;
+$product->id = isset($_GET['id']) ? $_GET['id'] : die();
 
 // удаление товара
 if ($product->delete()) {
